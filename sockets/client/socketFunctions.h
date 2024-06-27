@@ -6,7 +6,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-
 #define BUFFERSIZE 1024
 #define LISTEN_QUEUE 5
 #define MAX_CLIENTS 20
@@ -23,9 +22,9 @@
 #define NO_PLACE '1'
 #define NO_NAME '2'
 
-#define NAMEC1  '0'
-#define NAMEC2  '0'
-#define NAMEC3  '1'
+#define NAMEC1 '0'
+#define NAMEC2 '0'
+#define NAMEC3 '1'
 
 int Socket(int domain, int type, int protocol);
 
@@ -36,7 +35,5 @@ int GetSockName(int sockfd, struct sockaddr_in *restrict addr, socklen_t *restri
 int Listen(int sockfd, int backlog);
 
 int Connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
-
-
 
 #endif // SOCKET_FUNCTIONS_H

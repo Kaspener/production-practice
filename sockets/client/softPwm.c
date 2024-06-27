@@ -33,7 +33,7 @@
 //	pins that are on GPIO expanders. It's not that efficient and more than 1 or
 //	2 pins on e.g. (SPI) mcp23s17 won't really be that effective, however...
 
-#define	MAX_PINS	1024
+#define MAX_PINS 1024
 
 // The PWM Frequency is derived from the "pulse time" below. Essentially,
 //	the frequency is a function of the range and this pulse time.
@@ -49,14 +49,13 @@
 //	Another way to increase the frequency is to reduce the range - however
 //	that reduces the overall output accuracy...
 
-#define	PULSE_TIME	100
+#define PULSE_TIME 100
 
-static int marks         [MAX_PINS] ;
-static int range         [MAX_PINS] ;
-static pthread_t threads [MAX_PINS] ;
+static int marks[MAX_PINS];
+static int range[MAX_PINS];
+static pthread_t threads[MAX_PINS];
 
-int newPin = -1 ;
-
+int newPin = -1;
 
 /*
  * softPwmThread:
@@ -64,36 +63,35 @@ int newPin = -1 ;
  *********************************************************************************
  */
 
-static PI_THREAD (softPwmThread)
+static PI_THREAD(softPwmThread)
 {
-  int pin, mark, space ;
-  struct sched_param param ;
+  int pin, mark, space;
+  struct sched_param param;
 
-  param.sched_priority = sched_get_priority_max (SCHED_RR) ;
-  pthread_setschedparam (pthread_self (), SCHED_RR, &param) ;
+  param.sched_priority = sched_get_priority_max(SCHED_RR);
+  pthread_setschedparam(pthread_self(), SCHED_RR, &param);
 
-  pin    = newPin ;
-  newPin = -1 ;
+  pin = newPin;
+  newPin = -1;
 
-  piHiPri (90) ;
+  piHiPri(90);
 
   for (;;)
   {
-    mark  = marks [pin] ;
-    space = range [pin] - mark ;
+    mark = marks[pin];
+    space = range[pin] - mark;
 
     if (mark != 0)
-      digitalWrite (pin, HIGH) ;
-    delayMicroseconds (mark * 100) ;
+      digitalWrite(pin, HIGH);
+    delayMicroseconds(mark * 100);
 
     if (space != 0)
-      digitalWrite (pin, LOW) ;
-    delayMicroseconds (space * 100) ;
+      digitalWrite(pin, LOW);
+    delayMicroseconds(space * 100);
   }
 
-  return NULL ;
+  return NULL;
 }
-
 
 /*
  * softPwmWrite:
@@ -101,18 +99,17 @@ static PI_THREAD (softPwmThread)
  *********************************************************************************
  */
 
-void softPwmWrite (int pin, int value)
+void softPwmWrite(int pin, int value)
 {
-  pin &= (MAX_PINS - 1) ;
+  pin &= (MAX_PINS - 1);
 
   /**/ if (value < 0)
-    value = 0 ;
-  else if (value > range [pin])
-    value = range [pin] ;
+    value = 0;
+  else if (value > range[pin])
+    value = range[pin];
 
-  marks [pin] = value ;
+  marks[pin] = value;
 }
-
 
 /*
  * softPwmCreate:
@@ -120,34 +117,33 @@ void softPwmWrite (int pin, int value)
  *********************************************************************************
  */
 
-int softPwmCreate (int pin, int initialValue, int pwmRange)
+int softPwmCreate(int pin, int initialValue, int pwmRange)
 {
-  int res ;
-  pthread_t myThread ;
+  int res;
+  pthread_t myThread;
 
-  if (range [pin] != 0)	// Already running on this pin
-    return -1 ;
+  if (range[pin] != 0) // Already running on this pin
+    return -1;
 
   if (range <= 0)
-    return -1 ;
+    return -1;
 
-  pinMode      (pin, OUTPUT) ;
-  digitalWrite (pin, LOW) ;
+  pinMode(pin, OUTPUT);
+  digitalWrite(pin, LOW);
 
-  marks [pin] = initialValue ;
-  range [pin] = pwmRange ;
+  marks[pin] = initialValue;
+  range[pin] = pwmRange;
 
-  newPin = pin ;
-  res    = pthread_create (&myThread, NULL, softPwmThread, NULL) ;
+  newPin = pin;
+  res = pthread_create(&myThread, NULL, softPwmThread, NULL);
 
   while (newPin != -1)
-    delay (1) ;
+    delay(1);
 
-  threads [pin] = myThread ;
+  threads[pin] = myThread;
 
-  return res ;
+  return res;
 }
-
 
 /*
  * softPwmStop:
@@ -155,13 +151,13 @@ int softPwmCreate (int pin, int initialValue, int pwmRange)
  *********************************************************************************
  */
 
-void softPwmStop (int pin)
+void softPwmStop(int pin)
 {
-  if (range [pin] != 0)
+  if (range[pin] != 0)
   {
-    pthread_cancel (threads [pin]) ;
-    pthread_join   (threads [pin], NULL) ;
-    range [pin] = 0 ;
-    digitalWrite (pin, LOW) ;
+    pthread_cancel(threads[pin]);
+    pthread_join(threads[pin], NULL);
+    range[pin] = 0;
+    digitalWrite(pin, LOW);
   }
 }
